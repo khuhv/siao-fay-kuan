@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>給最愛的妳 ❤️</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Noto+Serif+TC:wght@400;600;700&family=Zen+Maru+Gothic:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        body {
+            font-family: 'Zen Maru Gothic', 'Noto Serif TC', sans-serif;
+            overflow: hidden;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* Sky Gradient Background */
+        .sky-bg {
+            background: linear-gradient(135deg, #a1c4fd 0%, #c2e9fb 50%, #e0c3fc 100%);
+        }
+
+        /* Clouds Animations */
+        .cloud {
+            transition: transform 2.5s cubic-bezier(0.25, 1, 0.5, 1), opacity 2s ease;
+        }
+        .cloud-left-part {
+            transform: translateX(-120vw);
+            opacity: 0;
+        }
+        .cloud-right-part {
+            transform: translateX(120vw);
+            opacity: 0;
+        }
+
+        /* Airplane Animation */
+        @keyframes flyAcross {
+            0% {
+                transform: translate(-10vw, 20vh) rotate(5deg) scale(0.7);
+                opacity: 0;
+            }
+            15% {
+                opacity: 1;
+            }
+            85% {
+                opacity: 1;
+            }
+            100% {
+                transform: translate(110vw, -15vh) rotate(-5deg) scale(1.1);
+                opacity: 0;
+            }
+        }
+
+        .airplane-anim {
+            animation: flyAcross 4.2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+
+        /* Floating Hearts Trail */
+        .heart-particle {
+            position: absolute;
+            pointer-events: none;
+            animation: floatAndFade 2.5s linear forwards;
+        }
+
+        @keyframes floatAndFade {
+            0% {
+                transform: scale(0.5) translate(0, 0) rotate(0deg);
+                opacity: 0.9;
+            }
+            100% {
+                transform: scale(1.3) translate(-30px, 40px) rotate(25deg);
+                opacity: 0;
+            }
+        }
+
+        /* 3D Envelope Styling */
+        .perspective-1000 {
+            perspective: 1200px;
+        }
+
+        .envelope-wrapper {
+            transition: all 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+            transform-style: preserve-3d;
+        }
+
+        .envelope-flap {
+            transform-origin: top;
+            transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 30;
+        }
+
+        .envelope-flap.open {
+            transform: rotateX(180deg);
+            z-index: 10;
+        }
+
+        /* Letter Card Slide Out */
+        .letter-card {
+            transition: transform 1s cubic-bezier(0.34, 1.25, 0.64, 1), opacity 0.8s ease, max-height 0.8s ease;
+            transform-style: preserve-3d;
+        }
+
+        .letter-card.extracted {
+            transform: translateY(-130px) scale(1.05);
+            z-index: 40;
+        }
+
+        .letter-card.full-screen {
+            transform: translateY(0) scale(1) !important;
+            position: fixed;
+            top: 5%;
+            bottom: 5%;
+            left: 5%;
+            right: 5%;
+            max-width: 520px;
+            margin: auto;
+            z-index: 50;
+            box-shadow: 0 25px 50px -12px rgba(225, 29, 72, 0.25);
+        }
+
+        /* Glowing Pulse Effect */
+        @keyframes subtleGlow {
+            0%, 100% { box-shadow: 0 10px 30px rgba(244, 114, 182, 0.4), 0 0 15px rgba(255, 255, 255, 0.6); }
+            50% { box-shadow: 0 15px 45px rgba(244, 114, 182, 0.7), 0 0 25px rgba(255, 255, 255, 0.9); }
+        }
+
+        .envelope-glow {
+            animation: subtleGlow 3s infinite ease-in-out;
+        }
+
+        /* Floating background hearts */
+        @keyframes floatBgHeart {
+            0% { transform: translateY(100vh) scale(0) rotate(0deg); opacity: 0; }
+            20% { opacity: 0.8; }
+            100% { transform: translateY(-10vh) scale(1.2) rotate(360deg); opacity: 0; }
+        }
+
+        .floating-bg-heart {
+            position: fixed;
+            animation: floatBgHeart linear infinite;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        /* Custom Scrollbar for Letter */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 5px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(253, 242, 248, 0.5);
+            border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #f472b6;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body class="sky-bg min-h-screen flex items-center justify-center relative overflow-hidden">
+
+    <div id="bgHeartsContainer" class="fixed inset-0 pointer-events-none"></div>
+
+    <div id="cloudsContainer" class="fixed inset-0 z-40 pointer-events-none flex justify-between items-center overflow-hidden">
+        <!-- Left Clouds -->
+        <div id="leftClouds" class="cloud absolute -left-20 -top-20 md:-left-10 w-[70vw] md:w-[45vw] text-white opacity-95 filter drop-shadow-lg">
+            <svg viewBox="0 0 500 400" fill="currentColor">
+                <path d="M150,180 Q120,100 200,90 Q260,60 320,110 Q390,80 430,150 Q480,180 450,250 Q480,320 400,340 Q320,380 240,340 Q160,370 110,310 Q50,290 80,220 Q60,160 150,180 Z"/>
+            </svg>
+        </div>
+        <!-- Right Clouds -->
+        <div id="rightClouds" class="cloud absolute -right-20 -bottom-20 md:-right-10 w-[75vw] md:w-[48vw] text-white opacity-95 filter drop-shadow-lg">
+            <svg viewBox="0 0 500 400" fill="currentColor">
+                <path d="M120,200 Q90,120 180,100 Q240,50 310,100 Q380,70 420,140 Q470,170 440,240 Q470,310 390,330 Q310,370 230,330 Q150,360 100,300 Q40,280 70,210 Q50,150 120,200 Z"/>
+            </svg>
+        </div>
+    </div>
+
+    <div id="airplane" class="fixed z-30 pointer-events-none opacity-0 flex items-center justify-center">
+        <div class="relative">
+            <!-- Airplane SVG -->
+            <svg class="w-20 h-20 md:w-28 md:h-28 text-rose-500 drop-shadow-md transform -rotate-12" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M21.5,12L2,21L5,12L2,3L21.5,12Z" />
+            </svg>
+            <!-- Cute Pilot Heart -->
+            <div class="absolute -top-1 right-2 text-rose-400 text-xs md:text-sm animate-bounce">
+                ❤️
+            </div>
+        </div>
+    </div>
+
+    <main class="relative z-20 w-full max-w-md px-4 flex flex-col items-center justify-center">
+        
+        <!-- Start Button Cover (Appears before clouds move, ensuring smooth audio/start trigger if needed) -->
+        <div id="startOverlay" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-sky-200/40 backdrop-blur-md transition-opacity duration-700">
+            <div class="bg-white/80 p-8 rounded-3xl shadow-2xl text-center max-w-xs mx-auto border border-pink-100 transform hover:scale-105 transition">
+                <div class="text-5xl mb-4 animate-pulse">💌</div>
+                <h1 class="text-2xl font-bold text-pink-600 mb-2">有一封專屬信件</h1>
+                <p class="text-gray-600 text-sm mb-6">有一份心意正在等待著妳開啟...</p>
+                <button id="btnStart" onclick="startJourney()" class="w-full py-3 px-6 bg-gradient-to-r from-pink-400 to-rose-400 hover:from-pink-500 hover:to-rose-500 text-white font-bold rounded-full shadow-lg transform active:scale-95 transition flex items-center justify-center gap-2">
+                    <span>開啟驚喜</span>
+                    <i class="fa-solid fa-heart"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Envelope Perspective Box -->
+        <div id="envelopeContainer" class="perspective-1000 w-full max-w-[340px] md:max-w-[380px] opacity-0 transition-opacity duration-1000 my-auto">
+            
+            <div id="envelope" class="relative w-full h-[230px] md:h-[250px] bg-rose-200 rounded-2xl shadow-2xl envelope-glow border-2 border-rose-300/60 flex flex-col justify-end">
+                
+                <!-- Envelope Flap (Top triangle) -->
+                <div id="envelopeFlap" class="envelope-flap absolute top-0 left-0 right-0 h-0 border-l-[170px] md:border-l-[190px] border-l-transparent border-r-[170px] md:border-r-[190px] border-r-transparent border-t-[130px] md:border-t-[145px] border-t-rose-300 drop-shadow-md origin-top cursor-pointer">
+                    <!-- Heart Seal -->
+                    <div class="absolute -top-[120px] md:-top-[135px] -left-[18px] w-9 h-9 bg-rose-500 rounded-full flex items-center justify-center text-white text-lg shadow-md border-2 border-white">
+                        ❤️
+                    </div>
+                </div>
+
+                <!-- Inside Back Gradient -->
+                <div class="absolute inset-0 bg-gradient-to-b from-rose-300 to-rose-100 rounded-2xl z-0"></div>
+
+                <!-- LETTER CARD (Inside Envelope initially) -->
+                <div id="letterCard" class="letter-card absolute bottom-3 left-3 right-3 h-[210px] md:h-[230px] bg-amber-50/95 rounded-xl p-5 shadow-md z-10 border border-amber-200/80 flex flex-col justify-between overflow-hidden">
+                    
+                    <!-- Decorative Flower Top Corner -->
+                    <div class="absolute top-2 right-2 text-rose-300 text-sm">🌸</div>
+                    <div class="absolute top-2 left-2 text-rose-300 text-sm">✨</div>
+
+                    <!-- Card Header -->
+                    <div class="text-center border-b border-rose-200/60 pb-2">
+                        <h2 id="cardTitle" class="text-lg md:text-xl font-bold text-rose-600">給親愛的妳 ❤️</h2>
+                    </div>
+
+                    <!-- Card Body (Scrollable in expanded mode) -->
+                    <div id="cardContent" class="my-3 text-gray-700 text-sm md:text-base leading-relaxed overflow-y-auto custom-scrollbar px-1 whitespace-pre-line font-medium">
+                        親愛的，
+
+                        自從遇見妳之後，我的世界變得無比明亮與溫暖。
+                        每一個有妳陪在身邊的日子，都像是一場甜美的夢境。
+
+                        謝謝妳帶來的所有歡笑與溫柔，
+                        這封信想告訴妳，我比昨天更愛妳，
+                        也期待與妳一起擁抱每一個美好的明天！
+
+                        願妳今天也有甜甜的心情 ✨
+                    </div>
+
+                    <!-- Card Footer Signature -->
+                    <div class="text-right border-t border-rose-200/60 pt-2 text-xs md:text-sm text-rose-500 font-bold">
+                        <span id="cardSignature">愛妳的他 筆 ✉️</span>
+                    </div>
+
+                    <!-- Action buttons inside full view (Close & Replay) -->
+                    <div id="cardActions" class="hidden mt-3 pt-2 border-t border-pink-200/80 flex justify-between items-center gap-2">
+                        <button onclick="openEditModal()" class="px-3 py-1.5 text-xs bg-rose-100 hover:bg-rose-200 text-rose-700 rounded-lg transition flex items-center gap-1">
+                            <i class="fa-solid fa-pen-to-square"></i> 修改文字
+                        </button>
+                        <button onclick="closeCard()" class="px-4 py-1.5 text-xs bg-rose-500 hover:bg-rose-600 text-white font-bold rounded-lg shadow transition">
+                            收起信封 💌
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Envelope Front Pocket (Covers bottom half of letter) -->
+                <div class="absolute inset-0 bg-gradient-to-t from-rose-200 via-rose-200/90 to-transparent rounded-2xl z-20 pointer-events-none border-b-2 border-rose-300"></div>
+                <div class="absolute bottom-0 left-0 right-0 h-0 border-l-[170px] md:border-l-[190px] border-l-transparent border-r-[170px] md:border-r-[190px] border-r-transparent border-b-[120px] md:border-b-[135px] border-b-rose-200 z-20 pointer-events-none"></div>
+
+                <!-- Envelope Buttons Overlay (Front Center) -->
+                <div id="envelopeButtons" class="absolute bottom-6 left-0 right-0 z-30 flex justify-center items-center gap-3 px-4 transition-all duration-500">
+                    <button onclick="openLetter()" class="flex-1 py-2.5 px-4 bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white font-bold text-sm md:text-base rounded-xl shadow-lg transform hover:-translate-y-0.5 active:scale-95 transition duration-200 flex items-center justify-center gap-1.5 border border-white/40">
+                        <i class="fa-solid fa-envelope-open"></i>
+                        <span>開啟</span>
+                    </button>
+                    <button onclick="openLetter()" class="flex-1 py-2.5 px-4 bg-gradient-to-r from-rose-400 to-amber-400 hover:from-rose-500 hover:to-amber-500 text-white font-bold text-sm md:text-base rounded-xl shadow-lg transform hover:-translate-y-0.5 active:scale-95 transition duration-200 flex items-center justify-center gap-1.5 border border-white/40">
+                        <i class="fa-solid fa-heart"></i>
+                        <span>給我看</span>
+                    </button>
+                </div>
+
+            </div>
+
+            <!-- Top Helper Bar (Quick Customize Option for Creator) -->
+            <div id="creatorTip" class="mt-6 text-center">
+                <button onclick="openEditModal()" class="inline-flex items-center gap-2 text-xs text-rose-700 bg-white/70 hover:bg-white backdrop-blur-sm px-3 py-1.5 rounded-full shadow-sm transition border border-rose-200">
+                    <i class="fa-solid fa-gear text-rose-500"></i>
+                    <span>點此編輯卡片內容 (傳送前修改)</span>
+                </button>
+            </div>
+        </div>
+
+    </main>
+
+    <div id="editModal" class="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-pink-100 flex flex-col gap-4">
+            <div class="flex justify-between items-center border-b pb-2">
+                <h3 class="text-lg font-bold text-rose-600 flex items-center gap-2">
+                    <i class="fa-solid fa-heart"></i> 編輯卡片內容
+                </h3>
+                <button onclick="closeEditModal()" class="text-gray-400 hover:text-gray-600 text-xl font-bold">&times;</button>
+            </div>
+
+            <div class="space-y-3">
+                <div>
+                    <label class="block text-xs font-bold text-gray-600 mb-1">標題 / 稱呼：</label>
+                    <input id="editTitleInput" type="text" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-rose-400" placeholder="給最愛的妳 ❤️">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-600 mb-1">內文內容：</label>
+                    <textarea id="editContentInput" rows="6" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-rose-400 resize-none" placeholder="寫下想對她說的話..."></textarea>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-600 mb-1">署名：</label>
+                    <input id="editSignatureInput" type="text" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-rose-400" placeholder="愛妳的 OO 筆 ✉️">
+                </div>
+            </div>
+
+            <div class="flex justify-end gap-2 pt-2">
+                <button onclick="closeEditModal()" class="px-4 py-2 text-xs bg-gray-100 hover:bg-gray-200 text-gray-600 font-bold rounded-lg transition">取消</button>
+                <button onclick="saveLetterContent()" class="px-5 py-2 text-xs bg-rose-500 hover:bg-rose-600 text-white font-bold rounded-lg shadow transition">儲存對話</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // State management
+        let isOpened = false;
+
+        // Initialize background hearts floating up
+        function createBgHearts() {
+            const container = document.getElementById('bgHeartsContainer');
+            const heartIcons = ['💖', '💕', '🌸', '✨', '💗', '❤️'];
+            
+            for (let i = 0; i < 15; i++) {
+                const heart = document.createElement('div');
+                heart.className = 'floating-bg-heart text-xl md:text-2xl';
+                heart.innerText = heartIcons[Math.floor(Math.random() * heartIcons.length)];
+                heart.style.left = `${Math.random() * 100}vw`;
+                heart.style.animationDuration = `${6 + Math.random() * 8}s`;
+                heart.style.animationDelay = `${Math.random() * 5}s`;
+                container.appendChild(heart);
+            }
+        }
+
+        // Start Journey: Clouds Scatter -> Airplane Flies -> Envelope Appears
+        function startJourney() {
+            // Hide start overlay
+            const startOverlay = document.getElementById('startOverlay');
+            startOverlay.classList.add('opacity-0', 'pointer-events-none');
+            
+            // 1. Scatter Clouds
+            setTimeout(() => {
+                document.getElementById('leftClouds').classList.add('cloud-left-part');
+                document.getElementById('rightClouds').classList.add('cloud-right-part');
+            }, 300);
+
+            // 2. Trigger Airplane Flight after clouds part
+            setTimeout(() => {
+                const plane = document.getElementById('airplane');
+                plane.classList.add('airplane-anim');
+
+                // Spawn heart trail behind airplane
+                const heartInterval = setInterval(() => {
+                    const rect = plane.getBoundingClientRect();
+                    if (rect.x > 0 && rect.x < window.innerWidth) {
+                        spawnHeartTrail(rect.x, rect.y + rect.height / 2);
+                    }
+                }, 180);
+
+                setTimeout(() => clearInterval(heartInterval), 4200);
+            }, 1000);
+
+            // 3. Reveal Envelope smoothly
+            setTimeout(() => {
+                const envelopeContainer = document.getElementById('envelopeContainer');
+                envelopeContainer.classList.remove('opacity-0');
+                envelopeContainer.classList.add('opacity-100');
+            }, 4500);
+        }
+
+        // Heart trail particle generator
+        function spawnHeartTrail(x, y) {
+            const heart = document.createElement('div');
+            heart.className = 'heart-particle text-rose-400 text-lg md:text-xl';
+            heart.innerText = Math.random() > 0.5 ? '💖' : '✨';
+            heart.style.left = `${x}px`;
+            heart.style.top = `${y}px`;
+            document.body.appendChild(heart);
+
+            setTimeout(() => {
+                heart.remove();
+            }, 2500);
+        }
+
+        // Open Letter Animation (Triggered by either button)
+        function openLetter() {
+            if (isOpened) return;
+            isOpened = true;
+
+            const flap = document.getElementById('envelopeFlap');
+            const card = document.getElementById('letterCard');
+            const buttons = document.getElementById('envelopeButtons');
+            const creatorTip = document.getElementById('creatorTip');
+
+            // Fade out buttons and tip
+            buttons.classList.add('opacity-0', 'pointer-events-none');
+            creatorTip.classList.add('opacity-0', 'pointer-events-none');
+
+            // Step 1: Open Flap
+            flap.classList.add('open');
+
+            // Step 2: Extract Card slightly
+            setTimeout(() => {
+                card.classList.add('extracted');
+            }, 600);
+
+            // Step 3: Expand Card to full view & launch celebration hearts
+            setTimeout(() => {
+                card.classList.remove('extracted');
+                card.classList.add('full-screen');
+                document.getElementById('cardActions').classList.remove('hidden');
+
+                // Confetti / Celebration Hearts Effect
+                triggerRomanticConfetti();
+            }, 1500);
+        }
+
+        // Close/Replay Card
+        function closeCard() {
+            const card = document.getElementById('letterCard');
+            const flap = document.getElementById('envelopeFlap');
+            const buttons = document.getElementById('envelopeButtons');
+            const creatorTip = document.getElementById('creatorTip');
+
+            document.getElementById('cardActions').classList.add('hidden');
+            card.classList.remove('full-screen');
+
+            setTimeout(() => {
+                flap.classList.remove('open');
+                buttons.classList.remove('opacity-0', 'pointer-events-none');
+                creatorTip.classList.remove('opacity-0', 'pointer-events-none');
+                isOpened = false;
+            }, 800);
+        }
+
+        // Confetti effect on card opening
+        function triggerRomanticConfetti() {
+            if (typeof confetti === 'function') {
+                confetti({
+                    particleCount: 50,
+                    spread: 70,
+                    origin: { y: 0.6 },
+                    colors: ['#f472b6', '#fb7185', '#f43f5e', '#fef08a']
+                });
+            }
+        }
+
+        // Edit Content Modal Logic
+        function openEditModal() {
+            document.getElementById('editTitleInput').value = document.getElementById('cardTitle').innerText;
+            document.getElementById('editContentInput').value = document.getElementById('cardContent').innerText;
+            document.getElementById('editSignatureInput').value = document.getElementById('cardSignature').innerText;
+            document.getElementById('editModal').classList.remove('hidden');
+        }
+
+        function closeEditModal() {
+            document.getElementById('editModal').classList.add('hidden');
+        }
+
+        function saveLetterContent() {
+            const newTitle = document.getElementById('editTitleInput').value.trim();
+            const newContent = document.getElementById('editContentInput').value.trim();
+            const newSignature = document.getElementById('editSignatureInput').value.trim();
+
+            if (newTitle) document.getElementById('cardTitle').innerText = newTitle;
+            if (newContent) document.getElementById('cardContent').innerText = newContent;
+            if (newSignature) document.getElementById('cardSignature').innerText = newSignature;
+
+            // Local storage persistence
+            localStorage.setItem('romantic_letter_title', newTitle);
+            localStorage.setItem('romantic_letter_content', newContent);
+            localStorage.setItem('romantic_letter_signature', newSignature);
+
+            closeEditModal();
+        }
+
+        // Load saved content from localStorage if available
+        function loadSavedContent() {
+            const savedTitle = localStorage.getItem('romantic_letter_title');
+            const savedContent = localStorage.getItem('romantic_letter_content');
+            const savedSignature = localStorage.getItem('romantic_letter_signature');
+
+            if (savedTitle) document.getElementById('cardTitle').innerText = savedTitle;
+            if (savedContent) document.getElementById('cardContent').innerText = savedContent;
+            if (savedSignature) document.getElementById('cardSignature').innerText = savedSignature;
+        }
+
+        // On Window Load
+        window.onload = function () {
+            createBgHearts();
+            loadSavedContent();
+        };
+    </script>
+</body>
+</html>
